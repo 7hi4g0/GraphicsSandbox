@@ -10,7 +10,10 @@ typedef struct {
 	uint32_t y;
 } Point;
 
-Point points[4];
+#define	MaxPoints	32
+
+Point points[MaxPoints];
+uint32_t totalPoints = 4;
 uint32_t width, height;
 
 // Bresenham's algorithm
@@ -169,7 +172,7 @@ int main() {
 
 	swa.background_pixel = 0xBCBCBC;
 	swa.colormap = cmap;
-	swa.event_mask = StructureNotifyMask | KeyReleaseMask;
+	swa.event_mask = StructureNotifyMask | KeyReleaseMask | ButtonReleaseMask | ButtonPressMask;
 
 	win = XCreateWindow(dpy, root, 0, 0, width, height, 0, CopyFromParent, InputOutput, CopyFromParent, CWBackPixel | CWColormap | CWEventMask, &swa);
 	//win = XCreateSimpleWindow(dpy, root, 0, 0, 600, 600, 0, 0xBCBCBC);
@@ -245,6 +248,12 @@ int main() {
 
 					}
 					break;
+				case ButtonRelease:
+					if (totalPoints < MaxPoints) {
+						points[totalPoints++] = (Point) {xev.xbutton.x, xev.xbutton.y};
+					}
+					printf("%d\n", totalPoints);
+					break;
 				default:
 					break;
 			}
@@ -260,9 +269,9 @@ int main() {
 
 		data = (uint32_t *) image.data;
 
-		drawLineFn(data, points[0], points[1]);
-		drawLineFn(data, points[1], points[2]);
-		drawLineFn(data, points[2], points[3]);
+		for (int point = 1; point < totalPoints; point++) {
+			drawLineFn(data, points[point - 1], points[point]);
+		}
 
 		XPutImage(dpy, win, gc, &image, 0, 0, 0, 0, width, height);
 	}

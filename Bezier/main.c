@@ -67,7 +67,7 @@ int main() {
 	XSetWMProtocols(dpy, win, &delete_event, 1);
 
 	XMapWindow(dpy, win);
-	XStoreName(dpy, win, "B-spline");
+	XStoreName(dpy, win, "Bezier");
 
 	image.width = width;
 	image.height = height;

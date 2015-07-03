@@ -92,8 +92,9 @@ uint32_t color(uint8_t intensity) {
 
 void drawLineAntialias(void *image, Point p1, Point p2) {
 	uint32_t *data;
-	uint8_t error, errorLast;
-	uint8_t errorAdj;
+	uint16_t error, errorLast;
+	uint16_t errorAdj;
+	uint8_t weight;
 	int32_t x, y;
 	int32_t dx, dy;
 	int32_t sx, sy;
@@ -113,7 +114,7 @@ void drawLineAntialias(void *image, Point p1, Point p2) {
 	data[y * width + x] = 0x00000000;
 
 	if (dy > dx) {
-		errorAdj = ((uint16_t) dx << 8) / (uint16_t) dy;
+		errorAdj = ((uint32_t) dx << 16) / (uint32_t) dy;
 
 		while (--dy) {
 			errorLast = error;
@@ -124,11 +125,13 @@ void drawLineAntialias(void *image, Point p1, Point p2) {
 			}
 			y += sy;
 
-			data[y * width + x] = color(error);
-			data[y * width + x + sx] = color(error ^ 0xFF);
+			weight = error >> 8;
+
+			data[y * width + x] = color(weight);
+			data[y * width + x + sx] = color(weight ^ 0xFF);
 		}
 	} else {
-		errorAdj = ((uint16_t) dy << 8) / (uint16_t) dx;
+		errorAdj = ((uint32_t) dy << 16) / (uint32_t) dx;
 
 		while (--dx) {
 			errorLast = error;
@@ -139,8 +142,10 @@ void drawLineAntialias(void *image, Point p1, Point p2) {
 			}
 			x += sx;
 
-			data[y * width + x] = color(error);
-			data[(y + sy) * width + x] = color(error ^ 0xFF);
+			weight = error >> 8;
+
+			data[y * width + x] = color(weight);
+			data[(y + sy) * width + x] = color(weight ^ 0xFF);
 		}
 	}
 
@@ -252,7 +257,6 @@ int main() {
 					if (totalPoints < MaxPoints) {
 						points[totalPoints++] = (Point) {xev.xbutton.x, xev.xbutton.y};
 					}
-					printf("%d\n", totalPoints);
 					break;
 				default:
 					break;

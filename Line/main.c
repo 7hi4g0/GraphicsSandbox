@@ -13,6 +13,36 @@ Point points[4];
 uint32_t width, height;
 
 // Bresenham's algorithm
+// A = dy
+// B = -dx
+// C = dx * b
+// f(x,y) = A * x + B * y + C
+// If f(x,y) = 0, (x,y) is part of the line
+// If f(x,y) < 0, (x,y) is below the line
+// If f(x,y) > 0, (x,y) is above the line
+//
+// y\x 01234
+//  0  \++++
+//  1  -\+++
+//  2  --\++
+//  3  ---\+
+//  4  ----\
+//
+// Calculate the accumulated error to determine the next pixel.
+// Begin at y + 1/2 for greater dx, or at x + 1/2 for greater dy.
+// E = f(x + sx,y + sy) - f(x,y)
+// E = A * sx + B * sy
+// If E < 0, (x + sx,y + sy) is below the line.
+// If E > 0, (x + sx,y + sy) is above the line.
+// For x + 1: E = E + A
+// For y + 1: E = E + B
+//
+// Increment the pixel values.
+// If y + 1 is below the line, increment x.
+// If x + 1 is above the line, increment y.
+// E + B < 0 <=> E < -B
+// E + A > 0 <=> E > -A
+//
 void drawLine(void *image, Point p1, Point p2) {
 	uint32_t *data;
 	int32_t x, y;
@@ -30,7 +60,7 @@ void drawLine(void *image, Point p1, Point p2) {
 	sx = p1.x < p2.x ? 1 : -1;
 	sy = p1.y < p2.y ? 1 : -1;
 
-	error = (dx > dy ? dx : -dy) / 2;
+	error = (dx > dy ? -dx : dy) / 2;
 
 	data[p1.y * width + p1.x] = 0x00000000;
 	data[p2.y * width + p2.x] = 0x00000000;
@@ -41,12 +71,12 @@ void drawLine(void *image, Point p1, Point p2) {
 
 		e2 = error;
 
-		if (e2 > -dx) {
-			error -= dy;
+		if (e2 < dx) {
+			error += dy;
 			x += sx;
 		}
-		if (e2 < dy) {
-			error += dx;
+		if (e2 > -dy) {
+			error -= dx;
 			y += sy;
 		}
 	}

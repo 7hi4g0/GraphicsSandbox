@@ -3,6 +3,7 @@
 #include <inttypes.h>
 
 #include <X11/Xlib.h>
+#include <X11/Xutil.h>
 
 typedef struct {
 	uint32_t x;
@@ -82,6 +83,67 @@ void drawLine(void *image, Point p1, Point p2) {
 	}
 }
 
+uint32_t color(uint8_t intensity) {
+	return (intensity << 16) + (intensity << 8) + intensity;
+}
+
+void drawLineAntialias(void *image, Point p1, Point p2) {
+	uint32_t *data;
+	uint8_t error, errorLast;
+	uint8_t errorAdj;
+	int32_t x, y;
+	int32_t dx, dy;
+	int32_t sx, sy;
+
+	data = (uint32_t *) image;
+
+	dx = abs(p2.x - p1.x);
+	dy = abs(p2.y - p1.y);
+	sx = p1.x < p2.x ? 1 : -1;
+	sy = p1.y < p2.y ? 1 : -1;
+
+	x = p1.x;
+	y = p1.y;
+
+	error = 0;
+
+	data[y * width + x] = 0x00000000;
+
+	if (dy > dx) {
+		errorAdj = ((uint16_t) dx << 8) / (uint16_t) dy;
+
+		while (--dy) {
+			errorLast = error;
+			error += errorAdj;
+
+			if (error < errorLast) {
+				x += sx;
+			}
+			y += sy;
+
+			data[y * width + x] = color(error);
+			data[y * width + x + sx] = color(error ^ 0xFF);
+		}
+	} else {
+		errorAdj = ((uint16_t) dy << 8) / (uint16_t) dx;
+
+		while (--dx) {
+			errorLast = error;
+			error += errorAdj;
+
+			if (error < errorLast) {
+				y += sy;
+			}
+			x += sx;
+
+			data[y * width + x] = color(error);
+			data[(y + sy) * width + x] = color(error ^ 0xFF);
+		}
+	}
+
+	data[p2.y * width + p2.x] = 0x00000000;
+}
+
 int main() {
 	Display *dpy;
 	Visual *vi;
@@ -107,7 +169,7 @@ int main() {
 
 	swa.background_pixel = 0xBCBCBC;
 	swa.colormap = cmap;
-	swa.event_mask = StructureNotifyMask;
+	swa.event_mask = StructureNotifyMask | KeyReleaseMask;
 
 	win = XCreateWindow(dpy, root, 0, 0, width, height, 0, CopyFromParent, InputOutput, CopyFromParent, CWBackPixel | CWColormap | CWEventMask, &swa);
 	//win = XCreateSimpleWindow(dpy, root, 0, 0, 600, 600, 0, 0xBCBCBC);
@@ -155,6 +217,7 @@ int main() {
 	points[3].x = 550;
 	points[3].y = 50;
 
+	void (*drawLineFn)(void *, Point, Point) = drawLine;
 	XEvent xev;
 	char loop = 1;
 
@@ -166,6 +229,20 @@ int main() {
 				case ClientMessage:
 					if (xev.xclient.data.l[0] == delete_event) {
 						loop = 0;
+					}
+					break;
+				case KeyRelease:
+					switch (XLookupKeysym(&xev.xkey, 0)) {
+						case XK_a:
+							if (drawLineFn == drawLine) {
+								drawLineFn = drawLineAntialias;
+							} else {
+								drawLineFn = drawLine;
+							}
+							break;
+						default:
+							break;
+
 					}
 					break;
 				default:
@@ -183,9 +260,9 @@ int main() {
 
 		data = (uint32_t *) image.data;
 
-		drawLine(data, points[0], points[1]);
-		drawLine(data, points[1], points[2]);
-		drawLine(data, points[2], points[3]);
+		drawLineFn(data, points[0], points[1]);
+		drawLineFn(data, points[1], points[2]);
+		drawLineFn(data, points[2], points[3]);
 
 		XPutImage(dpy, win, gc, &image, 0, 0, 0, 0, width, height);
 	}

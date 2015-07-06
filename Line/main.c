@@ -10,6 +10,16 @@ typedef struct {
 	uint32_t y;
 } Point;
 
+typedef union {
+	uint32_t value;
+	struct {
+		uint8_t B;
+		uint8_t G;
+		uint8_t R;
+		uint8_t pad;
+	};
+} Pixel;
+
 #define	MaxPoints	32
 
 Point points[MaxPoints];
@@ -226,6 +236,8 @@ int main() {
 	points[3].y = 50;
 
 	void (*drawLineFn)(void *, Point, Point) = drawLine;
+	FILE *imageFile;
+	Pixel *pixel;
 	XEvent xev;
 	char loop = 1;
 
@@ -248,9 +260,30 @@ int main() {
 								drawLineFn = drawLine;
 							}
 							break;
+						case XK_s:
+							imageFile = fopen("lines.ppm", "w");
+
+							if (imageFile != NULL) {
+								fprintf(imageFile, "P3\n%d %d\n255\n", width, height);
+
+								pixel = (Pixel *) image.data;
+
+								for (int y = 0; y < height; y++) {
+									for (int x = 0; x < width; x++) {
+										fprintf(imageFile, "%d %d %d ", pixel->R, pixel->G, pixel->B);
+										pixel++;
+									}
+									fprintf(imageFile, "\n");
+								}
+
+								fclose(imageFile);
+								imageFile = NULL;
+
+								fprintf(stderr, "File saved!\n");
+							}
+							break;
 						default:
 							break;
-
 					}
 					break;
 				case ButtonRelease:

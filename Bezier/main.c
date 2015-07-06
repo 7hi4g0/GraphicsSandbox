@@ -4,10 +4,7 @@
 #include <X11/Xlib.h>
 #include <GL/glcorearb.h>
 
-typedef struct {
-	int x;
-	int y;
-} Point;
+#include <Line/line.h>
 
 Point points[4];
 
@@ -106,6 +103,12 @@ int main() {
 	points[3].x = 550;
 	points[3].y = 50;
 
+	Image img;
+
+	img.data = image.data;
+	img.width = width;
+	img.height = height;
+
 	XEvent xev;
 	char loop = 1;
 
@@ -134,10 +137,15 @@ int main() {
 
 		data = (uint32_t *) image.data;
 
-		for (float t = 0; t < 1.0f; t += 0.01f) {
+		float step = 0.01f;
+		Point previous = bezier(0);
+
+		for (float t = step; t < 1.0f; t += step) {
 			Point p = bezier(t);
 
-			data[p.y * width + p.x] = 0x00000000;
+			drawLine(img, previous, p);
+
+			previous = p;
 		}
 
 		XPutImage(dpy, win, gc, &image, 0, 0, 0, 0, width, height);

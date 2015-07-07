@@ -69,3 +69,126 @@ void drawLine(Image image, Point p1, Point p2) {
 		}
 	}
 }
+
+uint32_t color(uint8_t intensity) {
+	return (intensity << 16) + (intensity << 8) + intensity;
+}
+
+void drawLineAntialias(Image image, Point p1, Point p2) {
+	uint32_t *data;
+	uint16_t error, errorLast;
+	uint16_t errorAdj;
+	uint8_t weight;
+	int32_t x, y;
+	int32_t dx, dy;
+	int32_t sx, sy;
+
+	data = (uint32_t *) image.data;
+
+	dx = abs(p2.x - p1.x);
+	dy = abs(p2.y - p1.y);
+	sx = p1.x < p2.x ? 1 : -1;
+	sy = p1.y < p2.y ? 1 : -1;
+
+	x = p1.x;
+	y = p1.y;
+
+	error = 0;
+
+	data[y * image.width + x] = 0x00000000;
+
+	if (dy > dx) {
+		errorAdj = ((uint32_t) dx << 16) / (uint32_t) dy;
+
+		while (--dy) {
+			errorLast = error;
+			error += errorAdj;
+
+			if (error < errorLast) {
+				x += sx;
+			}
+			y += sy;
+
+			weight = error >> 8;
+
+			data[y * image.width + x] = color(weight);
+			data[y * image.width + x + sx] = color(weight ^ 0xFF);
+		}
+	} else {
+		errorAdj = ((uint32_t) dy << 16) / (uint32_t) dx;
+
+		while (--dx) {
+			errorLast = error;
+			error += errorAdj;
+
+			if (error < errorLast) {
+				y += sy;
+			}
+			x += sx;
+
+			weight = error >> 8;
+
+			data[y * image.width + x] = color(weight);
+			data[(y + sy) * image.width + x] = color(weight ^ 0xFF);
+		}
+	}
+
+	data[p2.y * image.width + p2.x] = 0x00000000;
+}
+
+void drawLineAntialiasSlow(Image image, Point p1, Point p2) {
+	uint32_t *data;
+	uint16_t error, errorLast;
+	uint16_t errorAdj;
+	int32_t x, y;
+	int32_t dx, dy;
+	int32_t sx, sy;
+
+	data = (uint32_t *) image.data;
+
+	dx = abs(p2.x - p1.x);
+	dy = abs(p2.y - p1.y);
+	sx = p1.x < p2.x ? 1 : -1;
+	sy = p1.y < p2.y ? 1 : -1;
+
+	x = p1.x;
+	y = p1.y;
+
+	error = 0;
+
+	data[y * image.width + x] = 0x00000000;
+
+	if (dy > dx) {
+		errorAdj = ((uint32_t) dx << 16) / (uint32_t) dy;
+
+		while (--dy) {
+			errorLast = error;
+			error += errorAdj;
+
+			if (error < errorLast) {
+				x += sx;
+			}
+			y += sy;
+
+			data[y * image.width + x] = color((uint8_t) sqrtf(error));
+			data[y * image.width + x + sx] = color((uint8_t) sqrtf(error ^ 0xFFFF));
+		}
+	} else {
+		errorAdj = ((uint32_t) dy << 16) / (uint32_t) dx;
+
+		while (--dx) {
+			errorLast = error;
+			error += errorAdj;
+
+			if (error < errorLast) {
+				y += sy;
+			}
+			x += sx;
+
+			data[y * image.width + x] = color((uint8_t) sqrtf(error));
+			data[(y + sy) * image.width + x] = color((uint8_t) sqrtf(error ^ 0xFFFF));
+		}
+	}
+
+	data[p2.y * image.width + p2.x] = 0x00000000;
+}

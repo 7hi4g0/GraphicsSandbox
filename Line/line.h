@@ -5,21 +5,7 @@
 #include <inttypes.h>
 
 #include <Image/image.h>
-
-typedef struct {
-	uint32_t x;
-	uint32_t y;
-} Point;
-
-typedef union {
-	uint32_t value;
-	struct {
-		uint8_t B;
-		uint8_t G;
-		uint8_t R;
-		uint8_t pad;
-	};
-} Pixel;
+#include <Point/point.h>
 
 extern uint32_t width, height;
 

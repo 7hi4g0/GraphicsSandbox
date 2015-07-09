@@ -74,6 +74,7 @@ uint32_t color(uint8_t intensity) {
 	return (intensity << 16) + (intensity << 8) + intensity;
 }
 
+// Xiaolin Wu's Algorithm
 void drawLineAntialias(Image image, Point p1, Point p2) {
 	uint32_t *data;
 	uint16_t error, errorLast;
@@ -191,4 +192,66 @@ void drawLineAntialiasSlow(Image image, Point p1, Point p2) {
 	}
 
 	data[p2.y * image.width + p2.x] = 0x00000000;
+}
+
+void drawPixel(uint32_t *data, Pixel color, uint32_t distance) {
+	color.A = **distance**;
+
+	*data = alphaBlend(Pixel, *data);
+}
+
+void drawLineGuptaSproull(Image image, Point p1, Point p2) {
+	uint32_t *data;
+	uint32_t dx, dy;
+	uint32_t u, v;
+	uint32_t du, dv;
+	uint32_t uinc, vinc;
+	uint32_t d;
+
+	data = image.data + p1.y * image.width + p1.x;
+
+	dx = abs(p2.x - p1.x);
+	dy = abs(p2.y - p2.y);
+
+	if (dx > dy) {
+		du = dx;
+		dv = dy;
+		u = p1.x;
+		v = p1.y;
+		uinc = 1;
+		vinc = image.width;
+
+		if (p1.x > p2.x) { uinc = -uinc; }
+		if (p1.y > p2.y) { vinc = -vinc; }
+	} else {
+		du = dy;
+		dv = dx;
+		u = p1.y;
+		v = p1.x;
+		uinc = image.width;
+		vinc = 1;
+
+		if (p1.y > p2.y) { uinc = -uinc; }
+		if (p1.x > p2.x) { vinc = -vinc; }
+	}
+
+	d = (2 * dv) - du;
+	incS = 2 * dv;
+	incD = 2 * (du + dv);
+
+	do {
+		drawPixel(data, , );
+		drawPixel(data + vinc, , );
+		drawPixel(data - vinc, , );
+
+		if (d < 0) {
+			d += incS;
+		} else {
+			d += incD;
+			data += vinc;
+		}
+
+		u += 1;
+		data += uinc;
+	} while (u < uend);
 }

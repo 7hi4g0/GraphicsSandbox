@@ -14,5 +14,6 @@ extern uint32_t width, height;
 extern void drawLine(Image image, Point p1, Point p2);
 extern void drawLineAntialias(Image image, Point p1, Point p2);
 extern void drawLineAntialiasSlow(Image image, Point p1, Point p2);
+extern void drawLineAntialias4(Image image, Point p1, Point p2);
 
 #endif

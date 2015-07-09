@@ -192,3 +192,178 @@ void drawLineAntialiasSlow(Image image, Point p1, Point p2) {
 
 	data[p2.y * image.width + p2.x] = 0x00000000;
 }
+
+/* TODO(tandrade): Try this later
+typedef union {
+	Pixel sub[9];
+	struct {
+		Pixel dr;
+		Pixel dc;
+		Pixel dl;
+		Pixel cr;
+		Pixel cc;
+		Pixel cl;
+		Pixel tr;
+		Pixel tc;
+		Pixel tl;
+	};
+} Subpixel9;
+*/
+
+typedef union {
+	Pixel sub[4];
+	struct {
+		Pixel dr;
+		Pixel dl;
+		Pixel tr;
+		Pixel tl;
+	};
+} Subpixel4;
+
+void clearSubImage(Image image) {
+	Subpixel4 *subpixel;
+
+	subpixel = (Subpixel4 *) image.data;
+
+	for (int y = 0; y < image.height; y++) {
+		for (int x = 0; x < image.width; x++) {
+			subpixel->sub[0] = (Pixel) 0x00FFFFFFU;
+			subpixel->sub[1] = (Pixel) 0x00FFFFFFU;
+			subpixel->sub[2] = (Pixel) 0x00FFFFFFU;
+			subpixel->sub[3] = (Pixel) 0x00FFFFFFU;
+
+			subpixel++;
+		}
+	}
+}
+
+Pixel subPixelAntialias(Subpixel4 *subpixel) {
+	Pixel blend;
+	uint64_t luminance;
+
+	luminance = (uint16_t) subpixel->dr.R * (uint16_t) subpixel->dr.R
+		+ (uint16_t) subpixel->dl.R * (uint16_t) subpixel->dl.R
+		+ (uint16_t) subpixel->tr.R * (uint16_t) subpixel->tr.R
+		+ (uint16_t) subpixel->tl.R * (uint16_t) subpixel->tl.R;
+
+	luminance /= 4;
+
+	blend.R = sqrt(luminance);
+
+	luminance = (uint16_t) subpixel->dr.G * (uint16_t) subpixel->dr.G
+		+ (uint16_t) subpixel->dl.G * (uint16_t) subpixel->dl.G
+		+ (uint16_t) subpixel->tr.G * (uint16_t) subpixel->tr.G
+		+ (uint16_t) subpixel->tl.G * (uint16_t) subpixel->tl.G;
+
+	luminance /= 4;
+
+	blend.G = sqrt(luminance);
+
+	luminance = (uint16_t) subpixel->dr.B * (uint16_t) subpixel->dr.B
+		+ (uint16_t) subpixel->dl.B * (uint16_t) subpixel->dl.B
+		+ (uint16_t) subpixel->tr.B * (uint16_t) subpixel->tr.B
+		+ (uint16_t) subpixel->tl.B * (uint16_t) subpixel->tl.B;
+
+	luminance /= 4;
+
+	blend.B = sqrt(luminance);
+
+	return blend;
+}
+
+void putSubPixel(Image image, int32_t x, int32_t y, Pixel pixel) {
+	Subpixel4 *subpixel;
+
+	subpixel = image.data + ((y / 2) * image.width + (x / 2));
+
+	subpixel->dr = pixel;
+
+	if ((x % 2) && (y % 2)) {
+		subpixel[1].dl = pixel;
+		subpixel[image.width].tr = pixel;
+		subpixel[image.width + 1].tl = pixel;
+	} else if (x % 2) {
+		subpixel[0].tr = pixel;
+		subpixel[1].dl = pixel;
+		subpixel[1].dr = pixel;
+	} else if (y % 2) {
+		subpixel[0].dl = pixel;
+		subpixel[image.width].tl = pixel;
+		subpixel[image.width].tr = pixel;
+	} else {
+		subpixel[0].dl = pixel;
+		subpixel[0].tl = pixel;
+		subpixel[0].tr = pixel;
+	}
+}
+
+void drawLineAntialias4(Image image, Point p1, Point p2) {
+	Subpixel4 *subdata;
+	Image subimg;
+	uint32_t *data;
+	int32_t x, y;
+	int32_t error, e2;
+	int32_t dx, dy;
+	int32_t sx, sy;
+
+	data = (uint32_t *) image.data;
+
+	p1.x *= 2; p1.y *= 2;
+	p2.x *= 2; p2.y *= 2;
+
+	x = p1.x;
+	y = p1.y;
+
+	dx = abs(p2.x - p1.x);
+	dy = abs(p2.y - p1.y);
+	sx = p1.x < p2.x ? 1 : -1;
+	sy = p1.y < p2.y ? 1 : -1;
+
+	subdata = (Subpixel4 *) malloc((dy + 4) * (dx + 4) * sizeof(Pixel));
+
+	subimg.data = subdata;
+	subimg.width = dx + 2;		// 2 subpixels == 4 pixels
+	subimg.height = dy + 2;		// 2 subpixels == 4 pixels
+
+	clearSubImage(subimg);
+
+	error = (dx > dy ? -dx : dy) / 2;
+
+	putSubPixel(subimg, p1.x, p1.y, (Pixel) 0x00000000U);
+	putSubPixel(subimg, p2.x, p2.y, (Pixel) 0x00000000U);
+
+	while (1) {
+		putSubPixel(subimg, x, y, (Pixel) 0x00000000U);
+		if (x == p2.x && y == p2.y) break;
+
+		e2 = error;
+
+		if (e2 < dx) {
+			error += dy;
+			x += sx;
+		}
+		if (e2 > -dy) {
+			error -= dx;
+			y += sy;
+		}
+	}
+
+	p1.x /= 2; p1.y /= 2;
+	p2.x /= 2; p2.y /= 2;
+
+	dx = abs(p2.x - p1.x) + 1;
+	dy = abs(p2.y - p1.y) + 1;
+
+	x = p1.x < p2.x ? p1.x : p2.x;
+	y = p1.y < p2.y ? p1.y : p2.y;
+
+	while (dy--) {
+		while (dx--) {
+			data[y * image.width + x] = subPixelAntialias(&subdata[y * subimg.width + x]).value;
+			x++;
+		}
+		y++;
+	}
+
+	free(subdata);
+}

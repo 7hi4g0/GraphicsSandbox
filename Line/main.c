@@ -115,7 +115,7 @@ int main() {
 							if (drawLineFn == drawLine) {
 								drawLineFn = drawLineAntialias;
 							} else if (drawLineFn == drawLineAntialias) {
-								drawLineFn = drawLineAntialiasSlow;
+								drawLineFn = drawLineAntialias4;
 							} else {
 								drawLineFn = drawLine;
 							}

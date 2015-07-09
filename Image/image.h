@@ -9,7 +9,7 @@ typedef union {
 		uint8_t B;
 		uint8_t G;
 		uint8_t R;
-		uint8_t pad;
+		uint8_t A;
 	};
 } Pixel;
 
@@ -18,5 +18,7 @@ typedef struct {
 	uint32_t width;
 	uint32_t height;
 } Image;
+
+extern Pixel alphaBlend(Pixel src, Pixel dst);
 
 #endif

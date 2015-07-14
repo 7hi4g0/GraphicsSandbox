@@ -93,10 +93,12 @@ int main() {
 	img.width = width;
 	img.height = height;
 
-	void (*drawLineFn)(Image, Point, Point) = drawLine;
+	void (*drawLineFn)(Image, Point, Point, uint32_t) = drawLine;
 	FILE *imageFile;
 	Pixel *pixel;
+	uint32_t thickness = 1;
 	XEvent xev;
+	KeySym keysym;
 	char loop = 1;
 
 	while (loop) {
@@ -110,7 +112,17 @@ int main() {
 					}
 					break;
 				case KeyRelease:
-					switch (XLookupKeysym(&xev.xkey, 0)) {
+					switch (keysym = XLookupKeysym(&xev.xkey, 0)) {
+						case XK_KP_Add:
+							if (thickness < 50) {
+								thickness += 1;
+							}
+							break;
+						case XK_KP_Subtract:
+							if (thickness > 1) {
+								thickness -= 1;
+							}
+							break;
 						case XK_a:
 							if (drawLineFn == drawLine) {
 								drawLineFn = drawLineAntialias;
@@ -143,6 +155,7 @@ int main() {
 							}
 							break;
 						default:
+							fprintf(stderr, "Untreated '%s' captured.\n", XKeysymToString(keysym));
 							break;
 					}
 					break;
@@ -167,7 +180,7 @@ int main() {
 		data = (uint32_t *) image.data;
 
 		for (int point = 1; point < totalPoints; point++) {
-			drawLineFn(img, points[point - 1], points[point]);
+			drawLineFn(img, points[point - 1], points[point], thickness);
 		}
 
 		XPutImage(dpy, win, gc, &image, 0, 0, 0, 0, width, height);

@@ -1,4 +1,4 @@
-#include "line.h"
+#include <Line/line.h>
 
 // Bresenham's algorithm
 // A = dy
@@ -31,12 +31,15 @@
 // E + B < 0 <=> E < -B
 // E + A > 0 <=> E > -A
 //
-void drawLine(Image image, Point p1, Point p2) {
+void drawLine(Image image, Point p1, Point p2, uint32_t thickness) {
 	uint32_t *data;
+	uint32_t addr;
 	int32_t x, y;
 	int32_t error, e2;
 	int32_t dx, dy;
 	int32_t sx, sy;
+	int32_t addrx, addry;
+	uint32_t startThick, thickAdd;
 
 	data = (uint32_t *) image.data;
 
@@ -47,14 +50,22 @@ void drawLine(Image image, Point p1, Point p2) {
 	dy = abs(p2.y - p1.y);
 	sx = p1.x < p2.x ? 1 : -1;
 	sy = p1.y < p2.y ? 1 : -1;
+	addrx = p1.x < p2.x ? 1 : -1;
+	addry = p1.y < p2.y ? image.width : -image.width;
+	thickAdd = dx > dy ? addry : addrx;
+	startThick = (thickness / 2) * thickAdd;
 
 	error = (dx > dy ? -dx : dy) / 2;
 
 	data[p1.y * image.width + p1.x] = 0x00000000;
 	data[p2.y * image.width + p2.x] = 0x00000000;
 
+	addr = y * image.width + x;
+
 	while (1) {
-		data[y * image.width + x] = 0x00000000;
+		for (int thickAddr = addr - startThick, thick = 0; thick < thickness; thick++, thickAddr += thickAdd) {
+			data[thickAddr] = 0x00000000;
+		}
 		if (x == p2.x && y == p2.y) break;
 
 		e2 = error;
@@ -62,10 +73,12 @@ void drawLine(Image image, Point p1, Point p2) {
 		if (e2 < dx) {
 			error += dy;
 			x += sx;
+			addr += addrx;
 		}
 		if (e2 > -dy) {
 			error -= dx;
 			y += sy;
+			addr += addry;
 		}
 	}
 }
@@ -74,7 +87,7 @@ uint32_t color(uint8_t intensity) {
 	return (intensity << 16) + (intensity << 8) + intensity;
 }
 
-void drawLineAntialias(Image image, Point p1, Point p2) {
+void drawLineAntialias(Image image, Point p1, Point p2, uint32_t thickness) {
 	uint32_t *data;
 	uint16_t error, errorLast;
 	uint16_t errorAdj;
@@ -136,7 +149,7 @@ void drawLineAntialias(Image image, Point p1, Point p2) {
 	data[p2.y * image.width + p2.x] = 0x00000000;
 }
 
-void drawLineAntialiasSlow(Image image, Point p1, Point p2) {
+void drawLineAntialiasSlow(Image image, Point p1, Point p2, uint32_t thickness) {
 	uint32_t *data;
 	uint16_t error, errorLast;
 	uint16_t errorAdj;

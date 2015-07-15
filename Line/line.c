@@ -1,5 +1,7 @@
 #include <Line/line.h>
 
+static uint32_t sLineThickness = 1;
+
 // Bresenham's algorithm
 // A = dy
 // B = -dx
@@ -31,7 +33,7 @@
 // E + B < 0 <=> E < -B
 // E + A > 0 <=> E > -A
 //
-void drawLine(Image image, Point p1, Point p2, uint32_t thickness) {
+void drawLine(Image image, Point p1, Point p2) {
 	uint32_t *data;
 	uint32_t addr;
 	int32_t x, y;
@@ -39,7 +41,6 @@ void drawLine(Image image, Point p1, Point p2, uint32_t thickness) {
 	int32_t dx, dy;
 	int32_t sx, sy;
 	int32_t addrx, addry;
-	uint32_t startThick, thickAdd;
 
 	data = (uint32_t *) image.data;
 
@@ -52,8 +53,6 @@ void drawLine(Image image, Point p1, Point p2, uint32_t thickness) {
 	sy = p1.y < p2.y ? 1 : -1;
 	addrx = p1.x < p2.x ? 1 : -1;
 	addry = p1.y < p2.y ? image.width : -image.width;
-	thickAdd = dx > dy ? addry : addrx;
-	startThick = (thickness / 2) * thickAdd;
 
 	error = (dx > dy ? -dx : dy) / 2;
 
@@ -63,9 +62,7 @@ void drawLine(Image image, Point p1, Point p2, uint32_t thickness) {
 	addr = y * image.width + x;
 
 	while (1) {
-		for (int thickAddr = addr - startThick, thick = 0; thick < thickness; thick++, thickAddr += thickAdd) {
-			data[thickAddr] = 0x00000000;
-		}
+		data[addr] = 0x00000000;
 		if (x == p2.x && y == p2.y) break;
 
 		e2 = error;
@@ -83,11 +80,70 @@ void drawLine(Image image, Point p1, Point p2, uint32_t thickness) {
 	}
 }
 
+void setLineThickness(uint32_t lineThickness) {
+	sLineThickness = lineThickness;
+}
+
+void drawThickPoint(uint32_t *addr, int32_t startThick, int32_t thickAdd) {
+	for (uint32_t *thickAddr = addr - startThick, thick = 0; thick < sLineThickness; thick++, thickAddr += thickAdd) {
+		*thickAddr = 0x00000000;
+	}
+}
+
+void drawLineThick(Image image, Point p1, Point p2) {
+	uint32_t *data;
+	uint32_t x, y;
+	int32_t error, e2;
+	int32_t dx, dy;
+	int32_t sx, sy;
+	int32_t addrx, addry;
+	int32_t startThick, thickAdd;
+
+	data = (uint32_t *) image.data;
+
+	x = p1.x;
+	y = p1.y;
+
+	dx = abs(p2.x - p1.x);
+	dy = abs(p2.y - p1.y);
+	sx = p1.x < p2.x ? 1 : -1;
+	sy = p1.y < p2.y ? 1 : -1;
+	addrx = p1.x < p2.x ? 1 : -1;
+	addry = p1.y < p2.y ? image.width : -image.width;
+	thickAdd = dx > dy ? addry : addrx;
+	startThick = (sLineThickness / 2) * thickAdd;
+
+	error = (dx > dy ? -dx : dy) / 2;
+
+	drawThickPoint(data + p1.y * image.width + p1.x, startThick, thickAdd);
+	drawThickPoint(data + p2.y * image.width + p2.x, startThick, thickAdd);
+
+	data += y * image.width + x;
+
+	while (1) {
+		drawThickPoint(data, startThick, thickAdd);
+		if (x == p2.x && y == p2.y) break;
+
+		e2 = error;
+
+		if (e2 < dx) {
+			error += dy;
+			x += sx;
+			data += addrx;
+		}
+		if (e2 > -dy) {
+			error -= dx;
+			y += sy;
+			data += addry;
+		}
+	}
+}
+
 uint32_t color(uint8_t intensity) {
 	return (intensity << 16) + (intensity << 8) + intensity;
 }
 
-void drawLineAntialias(Image image, Point p1, Point p2, uint32_t thickness) {
+void drawLineAntialias(Image image, Point p1, Point p2) {
 	uint32_t *data;
 	uint16_t error, errorLast;
 	uint16_t errorAdj;
@@ -149,7 +205,7 @@ void drawLineAntialias(Image image, Point p1, Point p2, uint32_t thickness) {
 	data[p2.y * image.width + p2.x] = 0x00000000;
 }
 
-void drawLineAntialiasSlow(Image image, Point p1, Point p2, uint32_t thickness) {
+void drawLineAntialiasSlow(Image image, Point p1, Point p2) {
 	uint32_t *data;
 	uint16_t error, errorLast;
 	uint16_t errorAdj;

@@ -8,7 +8,15 @@
 #include <Image/image.h>
 #include <Line/line.h>
 
+#define LineFnCount	4
 #define	MaxPoints	32
+
+DrawLineFn drawLineList[4] = {
+	drawLine,
+	drawLineThick,
+	drawLineAntialias,
+	drawLineAntialiasSlow
+};
 
 Point points[MaxPoints];
 uint32_t totalPoints = 4;
@@ -93,7 +101,8 @@ int main() {
 	img.width = width;
 	img.height = height;
 
-	void (*drawLineFn)(Image, Point, Point, uint32_t) = drawLine;
+	uint32_t drawFnIndex = 0;
+	DrawLineFn drawLineFn = drawLineList[drawFnIndex];
 	FILE *imageFile;
 	Pixel *pixel;
 	uint32_t thickness = 1;
@@ -117,20 +126,16 @@ int main() {
 							if (thickness < 50) {
 								thickness += 1;
 							}
+							setLineThickness(thickness);
 							break;
 						case XK_KP_Subtract:
 							if (thickness > 1) {
 								thickness -= 1;
 							}
+							setLineThickness(thickness);
 							break;
 						case XK_a:
-							if (drawLineFn == drawLine) {
-								drawLineFn = drawLineAntialias;
-							} else if (drawLineFn == drawLineAntialias) {
-								drawLineFn = drawLineAntialiasSlow;
-							} else {
-								drawLineFn = drawLine;
-							}
+							drawLineFn = drawLineList[++drawFnIndex % LineFnCount];
 							break;
 						case XK_s:
 							imageFile = fopen("lines.ppm", "w");
@@ -180,7 +185,7 @@ int main() {
 		data = (uint32_t *) image.data;
 
 		for (int point = 1; point < totalPoints; point++) {
-			drawLineFn(img, points[point - 1], points[point], thickness);
+			drawLineFn(img, points[point - 1], points[point]);
 		}
 
 		XPutImage(dpy, win, gc, &image, 0, 0, 0, 0, width, height);

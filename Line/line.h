@@ -9,10 +9,12 @@
 #include <Image/image.h>
 #include <Point/point.h>
 
-extern uint32_t width, height;
+typedef void (*DrawLineFn)(Image, Point, Point);
 
-extern void drawLine(Image image, Point p1, Point p2, uint32_t thickness);
-extern void drawLineAntialias(Image image, Point p1, Point p2, uint32_t thickness);
-extern void drawLineAntialiasSlow(Image image, Point p1, Point p2, uint32_t thickness);
+extern void setLineThickness(uint32_t lineThickness);
+extern void drawLine(Image image, Point p1, Point p2);
+extern void drawLineThick(Image image, Point p1, Point p2);
+extern void drawLineAntialias(Image image, Point p1, Point p2);
+extern void drawLineAntialiasSlow(Image image, Point p1, Point p2);
 
 #endif

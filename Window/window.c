@@ -28,6 +28,8 @@ int main() {
 
 	width = 600;
 	height = 600;
+
+	prepare();
 	
 	dpy = XOpenDisplay(NULL);
 

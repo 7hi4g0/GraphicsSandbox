@@ -5,11 +5,18 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
+#include <Window/window.h>
 #include <Image/image.h>
 #include <Line/line.h>
 
 #define LineFnCount	4
 #define	MaxPoints	32
+
+KEY_RELEASE(keyRelease);
+BUTTON_RELEASE(buttonRelease);
+
+char windowName[] = "Lines";
+char fileName[] = "lines.ppm";
 
 DrawLineFn drawLineList[4] = {
 	drawLine,
@@ -20,68 +27,12 @@ DrawLineFn drawLineList[4] = {
 
 Point points[MaxPoints];
 uint32_t totalPoints = 4;
-uint32_t width, height;
+uint32_t thickness = 1;
+uint32_t drawFnIndex = 0;
+DrawLineFn drawLineFn;
 
-int main() {
-	Display *dpy;
-	Visual *vi;
-	Colormap cmap;
-	XSetWindowAttributes swa;
-	Atom delete_event;
-	GC gc;
-	XImage image;
-	Window root;
-	Window win;
-	int screen;
-
-	width = 600;
-	height = 600;
-	
-	dpy = XOpenDisplay(NULL);
-
-	root = DefaultRootWindow(dpy);
-	screen = DefaultScreen(dpy);
-	cmap = DefaultColormap(dpy, screen);
-	vi = DefaultVisual(dpy, screen);
-	gc = DefaultGC(dpy, screen);
-
-	swa.background_pixel = 0xBCBCBC;
-	swa.colormap = cmap;
-	swa.event_mask = StructureNotifyMask | KeyReleaseMask | ButtonReleaseMask | ButtonPressMask;
-
-	win = XCreateWindow(dpy, root, 0, 0, width, height, 0, CopyFromParent, InputOutput, CopyFromParent, CWBackPixel | CWColormap | CWEventMask, &swa);
-	//win = XCreateSimpleWindow(dpy, root, 0, 0, 600, 600, 0, 0xBCBCBC);
-	
-	delete_event = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
-	XSetWMProtocols(dpy, win, &delete_event, 1);
-
-	XMapWindow(dpy, win);
-	XStoreName(dpy, win, "Line");
-
-	image.width = width;
-	image.height = height;
-	image.xoffset = 0;
-	image.format = ZPixmap;
-	image.data = NULL;
-	image.byte_order = LSBFirst;
-	image.bitmap_unit = 32;
-	image.bitmap_bit_order = MSBFirst;
-	image.bitmap_pad = 32;
-	image.depth = 24;
-	image.bytes_per_line = 0;
-	image.bits_per_pixel = 32;
-	image.red_mask = vi->red_mask;
-	image.green_mask = vi->green_mask;
-	image.blue_mask = vi->blue_mask;
-	image.obdata = NULL;
-
-	image.data = (char *) malloc(sizeof(char) * width * height * 4);
-
-	if (image.data == NULL) {
-		fprintf(stderr, "Unable to allocate memory\n");
-	}
-
-	XInitImage(&image);
+void prepare(void) {
+	drawLineFn = drawLineList[drawFnIndex];
 
 	points[0].x = 50;
 	points[0].y = 550;
@@ -95,104 +46,38 @@ int main() {
 	points[3].x = 550;
 	points[3].y = 50;
 
-	Image img;
+	keyReleaseFn = keyRelease;
+	buttonReleaseFn = buttonRelease;
+}
 
-	img.data = image.data;
-	img.width = width;
-	img.height = height;
-
-	uint32_t drawFnIndex = 0;
-	DrawLineFn drawLineFn = drawLineList[drawFnIndex];
-	FILE *imageFile;
-	Pixel *pixel;
-	uint32_t thickness = 1;
-	XEvent xev;
-	KeySym keysym;
-	char loop = 1;
-
-	while (loop) {
-		while (XPending(dpy) > 0) {
-			XNextEvent(dpy, &xev);
-
-			switch (xev.type) {
-				case ClientMessage:
-					if (xev.xclient.data.l[0] == delete_event) {
-						loop = 0;
-					}
-					break;
-				case KeyRelease:
-					switch (keysym = XLookupKeysym(&xev.xkey, 0)) {
-						case XK_KP_Add:
-							if (thickness < 50) {
-								thickness += 1;
-							}
-							setLineThickness(thickness);
-							break;
-						case XK_KP_Subtract:
-							if (thickness > 1) {
-								thickness -= 1;
-							}
-							setLineThickness(thickness);
-							break;
-						case XK_a:
-							drawLineFn = drawLineList[++drawFnIndex % LineFnCount];
-							break;
-						case XK_s:
-							imageFile = fopen("lines.ppm", "w");
-
-							if (imageFile != NULL) {
-								fprintf(imageFile, "P3\n%d %d\n255\n", width, height);
-
-								pixel = (Pixel *) image.data;
-
-								for (int y = 0; y < height; y++) {
-									for (int x = 0; x < width; x++) {
-										fprintf(imageFile, "%d %d %d ", pixel->R, pixel->G, pixel->B);
-										pixel++;
-									}
-									fprintf(imageFile, "\n");
-								}
-
-								fclose(imageFile);
-								imageFile = NULL;
-
-								fprintf(stderr, "File saved!\n");
-							}
-							break;
-						default:
-							fprintf(stderr, "Untreated '%s' captured.\n", XKeysymToString(keysym));
-							break;
-					}
-					break;
-				case ButtonRelease:
-					if (totalPoints < MaxPoints) {
-						points[totalPoints++] = (Point) {xev.xbutton.x, xev.xbutton.y};
-					}
-					break;
-				default:
-					break;
+void keyRelease(XKeyEvent xkey) {
+	switch (XLookupKeysym(&xkey, 0)) {
+		case XK_KP_Add:
+			if (thickness < 50) {
+				thickness += 1;
 			}
-		}
-
-		uint32_t *data = (uint32_t *) image.data;
-
-		for (int y = 0; y < height; y++) {
-			for (int x = 0; x < width; x++) {
-				*data++ = 0x00FFFFFF;
+			setLineThickness(thickness);
+			break;
+		case XK_KP_Subtract:
+			if (thickness > 1) {
+				thickness -= 1;
 			}
-		}
-
-		data = (uint32_t *) image.data;
-
-		for (int point = 1; point < totalPoints; point++) {
-			drawLineFn(img, points[point - 1], points[point]);
-		}
-
-		XPutImage(dpy, win, gc, &image, 0, 0, 0, 0, width, height);
+			setLineThickness(thickness);
+			break;
+		case XK_a:
+			drawLineFn = drawLineList[++drawFnIndex % LineFnCount];
+			break;
 	}
+}
 
-	free(image.data);
+void buttonRelease(XButtonEvent xbutton) {
+	if (totalPoints < MaxPoints) {
+		points[totalPoints++] = (Point) {xbutton.x, xbutton.y};
+	}
+}
 
-	XDestroyWindow(dpy, win);
-	XCloseDisplay(dpy);
+void draw(Image image) {
+	for (int point = 1; point < totalPoints; point++) {
+		drawLineFn(image, points[point - 1], points[point]);
+	}
 }

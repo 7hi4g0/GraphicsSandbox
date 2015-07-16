@@ -14,6 +14,15 @@ char fileName[] = "window.ppm";
 */
 uint32_t width, height;
 
+KEY_RELEASE(keyReleaseStub) {
+}
+
+BUTTON_RELEASE(buttonReleaseStub){
+}
+
+KeyReleaseFn *keyReleaseFn = keyReleaseStub;
+ButtonReleaseFn *buttonReleaseFn = buttonReleaseStub;
+
 int main() {
 	Display *dpy;
 	Visual *vi;
@@ -127,8 +136,10 @@ int main() {
 							fprintf(stderr, "Untreated '%s' captured.\n", XKeysymToString(keysym));
 							break;
 					}
+					keyReleaseFn(xev.xkey);
 					break;
 				case ButtonRelease:
+					buttonReleaseFn(xev.xbutton);
 					break;
 				default:
 					break;

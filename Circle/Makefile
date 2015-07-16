@@ -1,5 +1,6 @@
 all: main.c circle.o
-	gcc -o circle main.c circle.o -I../ -lX11
+	cd ../Window; make window.o
+	gcc -o circle main.c ../Window/window.o circle.o -std=gnu99 -I../ -lX11
 
 circle.o: circle.c circle.h
-	gcc -c -o circle.o circle.c -I../ -lX11
+	gcc -c -o circle.o circle.c -I../ -std=gnu99 -lX11

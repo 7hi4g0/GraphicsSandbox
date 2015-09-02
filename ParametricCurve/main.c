@@ -16,6 +16,9 @@
 KEY_RELEASE(keyRelease);
 BUTTON_RELEASE(buttonRelease);
 
+void resetPoints();
+void clearPoints();
+
 char windowName[] = "Parametric Curves";
 char fileName[] = "parametricCurve.ppm";
 
@@ -25,13 +28,13 @@ DrawMultipleParametricFn drawParametricList[2] = {
 };
 
 Point points[MaxPoints];
-uint32_t totalPoints = 4;
-uint32_t thickness = 1;
-uint32_t drawFnIndex = 0;
+uint32_t totalPoints;
+uint32_t thickness;
+uint32_t drawFnIndex;
 DrawMultipleParametricFn drawParametricFn;
 
-void prepare(void) {
-	drawParametricFn = drawParametricList[drawFnIndex];
+void resetPoints() {
+	totalPoints = 4;
 
 	points[0].x = 50;
 	points[0].y = 550;
@@ -44,6 +47,19 @@ void prepare(void) {
 
 	points[3].x = 550;
 	points[3].y = 50;
+}
+
+void clearPoints() {
+	totalPoints = 0;
+}
+
+void prepare(void) {
+	thickness = 1;
+	drawFnIndex = 0;
+
+	drawParametricFn = drawParametricList[drawFnIndex];
+
+	resetPoints();
 
 	keyReleaseFn = keyRelease;
 	buttonReleaseFn = buttonRelease;
@@ -65,6 +81,12 @@ void keyRelease(XKeyEvent xkey) {
 			break;
 		case XK_p:
 			drawParametricFn = drawParametricList[++drawFnIndex % ParametricFnCount];
+			break;
+		case XK_r:
+			resetPoints();
+			break;
+		case XK_c:
+			clearPoints();
 			break;
 	}
 }

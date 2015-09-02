@@ -11,6 +11,8 @@ typedef BUTTON_RELEASE(ButtonReleaseFn);
 
 extern char windowName[];
 extern char fileName[];
+extern uint32_t verbose;
+extern uint32_t debug;
 extern uint32_t width, height;
 extern KeyReleaseFn *keyReleaseFn;
 extern ButtonReleaseFn *buttonReleaseFn;

@@ -4,8 +4,8 @@
 #include <Image/image.h>
 
 typedef struct {
-	uint32_t x;
-	uint32_t y;
+	uint16_t x;
+	uint16_t y;
 } Point;
 
 void drawPoint(Image image, Point point);

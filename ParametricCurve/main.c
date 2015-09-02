@@ -9,7 +9,7 @@
 #include <Image/image.h>
 #include <ParametricCurve/parametric.h>
 
-#define ParametricFnCount	1
+#define ParametricFnCount	2
 #define	MaxPoints	32
 
 KEY_RELEASE(keyRelease);
@@ -18,9 +18,9 @@ BUTTON_RELEASE(buttonRelease);
 char windowName[] = "Parametric Curves";
 char fileName[] = "parametricCurve.ppm";
 
-DrawParametricFn drawParametricList[4] = {
+DrawParametricFn drawParametricList[2] = {
 	drawBezier,
-	//drawBSpline
+	drawBSpline
 };
 
 Point points[MaxPoints];
@@ -62,7 +62,7 @@ void keyRelease(XKeyEvent xkey) {
 			}
 //			setLineThickness(thickness);
 			break;
-		case XK_a:
+		case XK_p:
 			drawParametricFn = drawParametricList[++drawFnIndex % ParametricFnCount];
 			break;
 	}

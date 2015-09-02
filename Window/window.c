@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <inttypes.h>
+#include <unistd.h>
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -12,6 +13,8 @@
 char windowName[] = "Blank Window";
 char fileName[] = "window.ppm";
 */
+uint32_t verbose;
+uint32_t debug;
 uint32_t width, height;
 
 KEY_RELEASE(keyReleaseStub) {
@@ -23,7 +26,7 @@ BUTTON_RELEASE(buttonReleaseStub){
 KeyReleaseFn *keyReleaseFn = keyReleaseStub;
 ButtonReleaseFn *buttonReleaseFn = buttonReleaseStub;
 
-int main() {
+int main(int argc, char *argv[]) {
 	Display *dpy;
 	Visual *vi;
 	Colormap cmap;
@@ -35,8 +38,34 @@ int main() {
 	Window win;
 	int screen;
 
+	// Default global values
 	width = 600;
 	height = 600;
+	verbose = 0;
+	debug = 0;
+
+	{
+		char opt;
+
+		while ((opt = getopt(argc, argv, ":dv")) != -1) {
+			switch (opt) {
+				case 'd':
+					debug +=1;
+					break;
+				case 'v':
+					verbose += 1;
+					break;
+				case ':':
+					fprintf(stderr, "%c needs an argument\n", optopt);
+					exit(-1);
+					break;
+				default:
+					fprintf(stderr, "Unknown option %c\n", optopt);
+					exit(-1);
+					break;
+			}
+		}
+	}
 
 	prepare();
 	
@@ -133,7 +162,9 @@ int main() {
 							}
 							break;
 						default:
-							fprintf(stderr, "Untreated '%s' captured.\n", XKeysymToString(keysym));
+							if (verbose) {
+								fprintf(stderr, "Untreated '%s' captured.\n", XKeysymToString(keysym));
+							}
 							break;
 					}
 					keyReleaseFn(xev.xkey);

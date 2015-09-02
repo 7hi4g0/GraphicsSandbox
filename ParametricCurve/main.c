@@ -7,6 +7,7 @@
 
 #include <Window/window.h>
 #include <Image/image.h>
+#include <Point/point.h>
 #include <ParametricCurve/parametric.h>
 
 #define ParametricFnCount	2
@@ -18,16 +19,16 @@ BUTTON_RELEASE(buttonRelease);
 char windowName[] = "Parametric Curves";
 char fileName[] = "parametricCurve.ppm";
 
-DrawParametricFn drawParametricList[2] = {
-	drawBezier,
-	drawBSpline
+DrawMultipleParametricFn drawParametricList[2] = {
+	drawMultipleBezier,
+	drawMultipleBSpline
 };
 
 Point points[MaxPoints];
 uint32_t totalPoints = 4;
 uint32_t thickness = 1;
 uint32_t drawFnIndex = 0;
-DrawParametricFn drawParametricFn;
+DrawMultipleParametricFn drawParametricFn;
 
 void prepare(void) {
 	drawParametricFn = drawParametricList[drawFnIndex];
@@ -75,5 +76,9 @@ void buttonRelease(XButtonEvent xbutton) {
 }
 
 void draw(Image image) {
-	drawParametricFn(image, points[0], points[1], points[2], points[3]);
+	drawParametricFn(image, points, totalPoints);
+
+	for (int point = 0; point < totalPoints; point++) {
+		drawPoint(image, points[point]);
+	}
 }

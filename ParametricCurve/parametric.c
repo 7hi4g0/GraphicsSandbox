@@ -72,3 +72,15 @@ void drawBSpline(Image image, Point p1, Point p2, Point p3, Point p4) {
 		previous = next;
 	}
 }
+
+void drawMultipleBezier(Image image, Point *points, int pointCount) {
+	for (int point = 3; point < pointCount; point += 3) {
+		drawBezier(image, points[point - 3], points[point - 2], points[point - 1], points[point]);
+	}
+}
+
+void drawMultipleBSpline(Image image, Point *points, int pointCount) {
+	for (int point = 3; point < pointCount; point += 1) {
+		drawBSpline(image, points[point - 3], points[point - 2], points[point - 1], points[point]);
+	}
+}

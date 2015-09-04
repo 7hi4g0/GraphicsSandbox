@@ -9,5 +9,6 @@ typedef struct {
 } Point;
 
 void drawPoint(Image image, Point point);
+int inPoint(Point point, Point pos);
 
 #endif

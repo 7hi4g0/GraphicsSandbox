@@ -15,6 +15,8 @@
 
 KEY_RELEASE(keyRelease);
 BUTTON_RELEASE(buttonRelease);
+BUTTON_PRESS(buttonPress);
+BUTTON_MOTION(buttonMotion);
 
 void resetPoints();
 void clearPoints();
@@ -31,6 +33,7 @@ Point points[MaxPoints];
 uint32_t totalPoints;
 uint32_t thickness;
 uint32_t drawFnIndex;
+uint32_t pointMotionIndex;
 DrawMultipleParametricFn drawParametricFn;
 
 void resetPoints() {
@@ -56,6 +59,7 @@ void clearPoints() {
 void prepare(void) {
 	thickness = 1;
 	drawFnIndex = 0;
+	pointMotionIndex = MaxPoints;
 
 	drawParametricFn = drawParametricList[drawFnIndex];
 
@@ -63,6 +67,8 @@ void prepare(void) {
 
 	keyReleaseFn = keyRelease;
 	buttonReleaseFn = buttonRelease;
+	buttonPressFn = buttonPress;
+	buttonMotionFn = buttonMotion;
 }
 
 void keyRelease(XKeyEvent xkey) {
@@ -91,8 +97,28 @@ void keyRelease(XKeyEvent xkey) {
 	}
 }
 
+void buttonMotion(XMotionEvent xmotion) {
+	if (pointMotionIndex < MaxPoints) {
+		points[pointMotionIndex].x = xmotion.x;
+		points[pointMotionIndex].y = xmotion.y;
+	}
+}
+
+void buttonPress(XButtonEvent xbutton) {
+	uint32_t point;
+
+	for (point = 0; point < totalPoints; point++) {
+		if (inPoint(points[point], (Point) {xbutton.x, xbutton.y})) {
+			pointMotionIndex = point;
+			break;
+		}
+	}
+}
+
 void buttonRelease(XButtonEvent xbutton) {
-	if (totalPoints < MaxPoints) {
+	if (pointMotionIndex < MaxPoints) {
+		pointMotionIndex = MaxPoints;
+	} else if (totalPoints < MaxPoints) {
 		points[totalPoints++] = (Point) {xbutton.x, xbutton.y};
 	}
 }

@@ -11,3 +11,17 @@ void drawPoint(Image image, Point point) {
 		}
 	}
 }
+
+int inPoint(Point point, Point pos) {
+	int32_t dist;
+
+	dist = point.x - pos.x;
+	if (dist > -2 && dist < 2) {
+		dist = point.y - pos.y;
+		if (dist > -2 && dist < 2) {
+			return 1;
+		}
+	}
+
+	return 0;
+}

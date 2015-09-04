@@ -23,8 +23,16 @@ KEY_RELEASE(keyReleaseStub) {
 BUTTON_RELEASE(buttonReleaseStub){
 }
 
+BUTTON_PRESS(buttonPressStub){
+}
+
+BUTTON_MOTION(buttonMotionStub){
+}
+
 KeyReleaseFn *keyReleaseFn = keyReleaseStub;
 ButtonReleaseFn *buttonReleaseFn = buttonReleaseStub;
+ButtonPressFn *buttonPressFn = buttonPressStub;
+ButtonMotionFn *buttonMotionFn = buttonMotionStub;
 
 int main(int argc, char *argv[]) {
 	Display *dpy;
@@ -79,7 +87,7 @@ int main(int argc, char *argv[]) {
 
 	swa.background_pixel = 0xBCBCBC;
 	swa.colormap = cmap;
-	swa.event_mask = StructureNotifyMask | KeyReleaseMask | ButtonReleaseMask | ButtonPressMask;
+	swa.event_mask = StructureNotifyMask | KeyReleaseMask | ButtonReleaseMask | ButtonPressMask | ButtonMotionMask;
 
 	win = XCreateWindow(dpy, root, 0, 0, width, height, 0, CopyFromParent, InputOutput, CopyFromParent, CWBackPixel | CWColormap | CWEventMask, &swa);
 	//win = XCreateSimpleWindow(dpy, root, 0, 0, 600, 600, 0, 0xBCBCBC);
@@ -169,8 +177,14 @@ int main(int argc, char *argv[]) {
 					}
 					keyReleaseFn(xev.xkey);
 					break;
+				case ButtonPress:
+					buttonPressFn(xev.xbutton);
+					break;
 				case ButtonRelease:
 					buttonReleaseFn(xev.xbutton);
+					break;
+				case MotionNotify:
+					buttonMotionFn(xev.xmotion);
 					break;
 				default:
 					break;

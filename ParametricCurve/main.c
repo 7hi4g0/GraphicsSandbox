@@ -128,5 +128,9 @@ void draw(Image image) {
 
 	for (int point = 0; point < totalPoints; point++) {
 		drawPoint(image, points[point]);
+		// TODO: remove debug check and change line to be dashed or of a different color
+		if (debug && point > 0) {
+			drawLine(image, points[point - 1], points[point]);
+		}
 	}
 }

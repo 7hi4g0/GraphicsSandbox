@@ -1,4 +1,4 @@
-CFLAGS=-std=gnu11
+# CFLAGS=-std=gnu11
 
 all:
 	cd Window; make

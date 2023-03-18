@@ -1,7 +1,7 @@
 include ../Makefile
 
 all: main.c window.o
-	gcc -o window main.c window.o $(CFLAGS) -I../ -lX11
+	clang -o window main.c window.o -I../ -framework Cocoa
 
-window.o: window.c window.h
-	gcc -c -o window.o window.c $(CFLAGS) -I../
+window.o: window.m window.h
+	clang -c -o window.o window.m -I../

@@ -1,4 +1,4 @@
-# CFLAGS=-std=gnu11
+CFLAGS=-std=gnu11
 
 all:
 	cd Window; make
@@ -6,3 +6,4 @@ all:
 	cd Point; make
 	cd Line; make
 	cd Bezier; make
+	cd ParametricCurve; make

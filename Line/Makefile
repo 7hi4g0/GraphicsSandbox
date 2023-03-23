@@ -1,8 +1,7 @@
 include ../Makefile
 
 all: main.c line.o
-	cd ../Window; make window.o
-	gcc -o line main.c ../Window/window.o line.o $(CFLAGS) -I../ -lX11 -lm
+	clang -o line main.c ../Window/window.o line.o $(CFLAGS) -I../ -framework Cocoa -lm
 
 line.o: line.c line.h ../Image/image.h ../Point/point.h
-	gcc -c -o line.o line.c $(CFLAGS) -I../ -lX11 -lm
+	clang -c -o line.o line.c $(CFLAGS) -I../

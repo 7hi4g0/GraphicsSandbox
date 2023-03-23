@@ -1,10 +1,7 @@
 include ../Makefile
 
-all: alpha image.o
-
-alpha: alpha.c image.o
-	cd ../Window; make window.o
-	gcc -o alpha alpha.c image.o ../Window/window.o $(CFLAGS) -I../ -lX11
+all: alpha.c image.o
+	clang -o alpha alpha.c image.o ../Window/window.o $(CFLAGS) -I../ -framework Cocoa
 
 image.o: image.c image.h
-	gcc -c -o image.o image.c $(CFLAGS) -I../
+	clang -c -o image.o image.c $(CFLAGS) -I../

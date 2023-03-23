@@ -2,9 +2,6 @@
 #include <stdio.h>
 #include <inttypes.h>
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-
 #include <Window/window.h>
 #include <Image/image.h>
 #include <ParametricCurve/parametric.h>
@@ -48,29 +45,29 @@ void prepare(void) {
 	buttonReleaseFn = buttonRelease;
 }
 
-void keyRelease(XKeyEvent xkey) {
-	switch (XLookupKeysym(&xkey, 0)) {
-		case XK_KP_Add:
+void keyRelease(KeyboardEvent keyboardEvent) {
+	switch (keyboardEvent.keycode) {
+		case KEYCODE_EQUALS:
 			if (thickness < 50) {
 				thickness += 1;
 			}
 //			setLineThickness(thickness);
 			break;
-		case XK_KP_Subtract:
+		case KEYCODE_MINUS:
 			if (thickness > 1) {
 				thickness -= 1;
 			}
 //			setLineThickness(thickness);
 			break;
-		case XK_p:
+		case KEYCODE_P:
 			drawParametricFn = drawParametricList[++drawFnIndex % ParametricFnCount];
 			break;
 	}
 }
 
-void buttonRelease(XButtonEvent xbutton) {
+void buttonRelease(MouseEvent mouseEvent) {
 	if (totalPoints < MaxPoints) {
-		points[totalPoints++] = (Point) {xbutton.x, xbutton.y};
+		points[totalPoints++] = (Point) {mouseEvent.location.x, mouseEvent.location.y};
 	}
 }
 

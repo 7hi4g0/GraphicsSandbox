@@ -1,9 +1,9 @@
-CFLAGS=-std=gnu11
+include defs.mk
 
-all:
-	cd Window; make
-	cd Image; make
-	cd Point; make
-	cd Line; make
-	cd Bezier; make
-	cd ParametricCurve; make
+TOPTARGETS := all clean
+
+$(TOPTARGETS): $(SUBPROJECTS)
+$(SUBPROJECTS):
+	$(MAKE) -C $@ $(MAKECMDGOALS)
+
+.PHONY: $(TOPTARGETS) $(SUBPROJECTS)

@@ -1,7 +1,10 @@
-include ../Makefile
+include ../defs.mk
 
 all: main.c circle.o
-	clang -o circle main.c ../Window/window.o circle.o $(CFLAGS) -I../ -framework Cocoa
+	$(CC) -o circle main.c ../Window/window.o circle.o $(CFLAGS) $(GRAPHICS_LINKER)
 
 circle.o: circle.c circle.h
-	clang -c -o circle.o circle.c -I../ $(CFLAGS) -framework Cocoa
+	$(CC) -c -o circle.o circle.c $(CFLAGS)
+
+clean:
+	-rm -f circle circle.o

@@ -1,4 +1,7 @@
-include ../Makefile
+include ../defs.mk
 
 all: main.c
-	clang -o bezier main.c ../Window/window.o ../Line/line.o $(CFLAGS) -I../ -framework Cocoa -lm
+	$(CC) -o bezier main.c ../Window/window.o ../Line/line.o $(CFLAGS) $(GRAPHICS_LINKER) -lm
+
+clean:
+	-rm -f bezier

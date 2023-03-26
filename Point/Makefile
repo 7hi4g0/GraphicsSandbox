@@ -1,7 +1,10 @@
-include ../Makefile
+include ../defs.mk
 
 all: main.c point.o
-	clang -o points main.c point.o ../Window/window.o ../Line/line.o $(CFLAGS) -I../ -framework Cocoa -lm
+	$(CC) -o points main.c point.o ../Window/window.o ../Line/line.o $(CFLAGS) $(GRAPHICS_LINKER) -lm
 
 point.o: point.c point.h
-	clang -c -o point.o point.c $(CFLAGS) -I../
+	$(CC) -c -o point.o point.c $(CFLAGS)
+
+clean:
+	-rm -f points point.o

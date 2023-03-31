@@ -9,10 +9,6 @@
 #include <Image/image.h>
 #include <Window/window.h>
 
-/*
-char windowName[] = "Blank Window";
-char fileName[] = "window.ppm";
-*/
 uint32_t verbose;
 uint32_t debug;
 uint32_t width, height;
@@ -145,8 +141,9 @@ int main(int argc, char *argv[]) {
 						loop = 0;
 					}
 					break;
-				case KeyRelease:
-					switch (keysym = XLookupKeysym(&xev.xkey, 0)) {
+				case KeyRelease: {
+					keysym = XLookupKeysym(&xev.xkey, 0);
+					switch (keysym) {
 						case XK_s:
 							imageFile = fopen(fileName, "w");
 
@@ -175,16 +172,37 @@ int main(int argc, char *argv[]) {
 							}
 							break;
 					}
-					keyReleaseFn(xev.xkey);
+
+					KeyboardEvent keyboardEvent = {
+						keysym
+					};
+
+					keyReleaseFn(keyboardEvent);
+				}
 					break;
-				case ButtonPress:
-					buttonPressFn(xev.xbutton);
+				case ButtonPress: {
+					MouseEvent mouseEvent = {
+						{xev.xbutton.x, xev.xbutton.y}
+					};
+
+					buttonPressFn(mouseEvent);
+				}
 					break;
-				case ButtonRelease:
-					buttonReleaseFn(xev.xbutton);
+				case ButtonRelease: {
+					MouseEvent mouseEvent = {
+						{xev.xbutton.x, xev.xbutton.y}
+					};
+					
+					buttonReleaseFn(mouseEvent);
+				}
 					break;
-				case MotionNotify:
-					buttonMotionFn(xev.xmotion);
+				case MotionNotify: {
+					MouseEvent mouseEvent = {
+						{xev.xmotion.x, xev.xmotion.y}
+					};
+					
+					buttonMotionFn(mouseEvent);
+				}
 					break;
 				default:
 					break;

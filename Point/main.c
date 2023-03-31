@@ -40,10 +40,10 @@ void buttonRelease(MouseEvent mouseEvent) {
 }
 
 void draw(Image image) {
-	drawPoint(image, points[0]);
+	drawPoint(image, points[0], 2);
 
 	for (int point = 1; point < totalPoints; point++) {
 		drawLine(image, points[point - 1], points[point]);
-		drawPoint(image, points[point]);
+		drawPoint(image, points[point], 2);
 	}
 }

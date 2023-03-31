@@ -12,7 +12,7 @@ typedef struct {
 	uint16_t y;
 } Point;
 
-void drawPoint(Image image, Point point);
-int inPoint(Point point, Point pos);
+void drawPoint(Image image, Point point, uint8_t size);
+int inPoint(Point point, Point pos, uint8_t tolerance);
 
 #endif

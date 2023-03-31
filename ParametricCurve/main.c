@@ -30,7 +30,8 @@ Point points[MaxPoints];
 uint32_t totalPoints;
 uint32_t thickness;
 uint32_t drawFnIndex;
-uint32_t pointMotionIndex;
+uint32_t highlightedPoint;
+uint32_t selectedPoint;
 DrawMultipleParametricFn drawParametricFn;
 
 void resetPoints() {
@@ -56,7 +57,8 @@ void clearPoints() {
 void prepare(void) {
 	thickness = 1;
 	drawFnIndex = 0;
-	pointMotionIndex = MaxPoints;
+	highlightedPoint = MaxPoints;
+	selectedPoint = MaxPoints;
 
 	drawParametricFn = drawParametricList[drawFnIndex];
 
@@ -85,36 +87,39 @@ void keyRelease(KeyboardEvent keyboardEvent) {
 		case KEYCODE_P:
 			drawParametricFn = drawParametricList[++drawFnIndex % ParametricFnCount];
 			break;
-		case XK_r:
+		case KEYCODE_R:
 			resetPoints();
 			break;
-		case XK_c:
+		case KEYCODE_C:
 			clearPoints();
 			break;
 	}
 }
 
-void buttonMotion(XMotionEvent xmotion) {
-	if (pointMotionIndex < MaxPoints) {
-		points[pointMotionIndex].x = xmotion.x;
-		points[pointMotionIndex].y = xmotion.y;
+void buttonMotion(MouseEvent mouseEvent) {
+	if (selectedPoint < MaxPoints) {
+		points[selectedPoint] = mouseEvent.location;
+		return;
 	}
-}
 
-void buttonPress(XButtonEvent xbutton) {
-	uint32_t point;
-
-	for (point = 0; point < totalPoints; point++) {
-		if (inPoint(points[point], (Point) {xbutton.x, xbutton.y})) {
-			pointMotionIndex = point;
+	highlightedPoint = MaxPoints;
+	for (uint32_t point = 0; point < totalPoints; point++) {
+		if (inPoint(points[point], mouseEvent.location, 3)) {
+			highlightedPoint = point;
 			break;
 		}
 	}
 }
 
+void buttonPress(MouseEvent mouseEvent) {
+	if (highlightedPoint < MaxPoints) {
+		selectedPoint = highlightedPoint;
+	}
+}
+
 void buttonRelease(MouseEvent mouseEvent) {
-	if (pointMotionIndex < MaxPoints) {
-		pointMotionIndex = MaxPoints;
+	if (selectedPoint < MaxPoints) {
+		selectedPoint = MaxPoints;
 	} else if (totalPoints < MaxPoints) {
 		points[totalPoints++] = mouseEvent.location;
 	}
@@ -124,7 +129,8 @@ void draw(Image image) {
 	drawParametricFn(image, points, totalPoints);
 
 	for (int point = 0; point < totalPoints; point++) {
-		drawPoint(image, points[point]);
+		uint8_t pointSize = (point == highlightedPoint) ? 3 : 2;
+		drawPoint(image, points[point], pointSize);
 		// TODO: remove debug check and change line to be dashed or of a different color
 		if (debug && point > 0) {
 			drawLine(image, points[point - 1], points[point]);

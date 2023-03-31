@@ -12,7 +12,4 @@ typedef struct MouseEvent {
     Point location;
 } MouseEvent;
 
-typedef struct MotionEvent {
-} MotionEvent;
-
 #endif

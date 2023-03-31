@@ -43,8 +43,6 @@ int
 main(int argc, char *argv[])
 { @autoreleasepool
 {
-    NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
-
     NSWindow *nswindow;
     NSRect rect;
     NSUInteger style;
@@ -143,10 +141,9 @@ main(int argc, char *argv[])
 		}
 	];
 
-	while (loop) {
-		[pool release];
-		pool = [[NSAutoreleasePool alloc] init];
-
+	while (loop)
+	{ @autoreleasepool
+	{
 		while ((event = [nswindow nextEventMatchingMask:NSEventMaskAny untilDate:[NSDate distantPast] inMode:NSDefaultRunLoopMode dequeue:YES]) != nil) {
 			NSEventType eventType = [event type];
 			switch (eventType) {
@@ -216,8 +213,12 @@ main(int argc, char *argv[])
 				case NSEventTypeOtherMouseDragged: /* usually middle mouse dragged */
 				case NSEventTypeMouseMoved:
 				case NSEventTypeScrollWheel: {
-					MotionEvent motionEvent;
-					buttonMotionFn(motionEvent);
+					MouseEvent mouseEvent;
+					NSPoint windowPoint;
+					windowPoint = [nswindow mouseLocationOutsideOfEventStream];
+					mouseEvent.location.x = windowPoint.x;
+					mouseEvent.location.y = height - windowPoint.y;
+					buttonMotionFn(mouseEvent);
 				}
 					break;
 				case NSEventTypeKeyDown:
@@ -250,12 +251,11 @@ main(int argc, char *argv[])
 		CGImageRelease(image);
 		CGDataProviderRelease(provider);
 	}
+	}
 
 	CGColorSpaceRelease(space);
 
 	[nswindow close];
 	[NSApp terminate:nil];
-
-    [pool release];
 }
 }

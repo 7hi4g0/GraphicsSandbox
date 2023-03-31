@@ -5,6 +5,8 @@
 typedef enum {
     KEYCODE_A = 0,
     KEYCODE_S = 1,
+    KEYCODE_C = 8,
+    KEYCODE_R = 15,
     KEYCODE_EQUALS = 24,
     KEYCODE_MINUS = 27,
     KEYCODE_P = 35

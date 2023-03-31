@@ -1,9 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <X11/Xlib.h>
-#include <GL/glcorearb.h>
-
 #include <Window/window.h>
 #include <Line/line.h>
 

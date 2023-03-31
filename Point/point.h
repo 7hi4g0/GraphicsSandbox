@@ -3,6 +3,10 @@
 
 #include <Image/image.h>
 
+#ifdef __APPLE__
+#define Point MYPoint
+#endif
+
 typedef struct {
 	uint16_t x;
 	uint16_t y;

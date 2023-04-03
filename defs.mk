@@ -6,7 +6,21 @@ SUBPROJECTS+=Circle/
 SUBPROJECTS+=Bezier/
 SUBPROJECTS+=ParametricCurve/
 
-CFLAGS=-std=gnu11 -I$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+OBJECTS+=Window/window.o
+OBJECTS+=Image/image.o
+OBJECTS+=Point/point.o
+OBJECTS+=Line/line.o
+OBJECTS+=Circle/circle.o
+OBJECTS+=ParametricCurve/parametric.o
+
+WORKDIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+BUILDDIR := $(WORKDIR)build
+LIBDIR := $(BUILDDIR)/lib
+LIBRARY := $(LIBDIR)/libgraphics.a
+
+CFLAGS=-std=gnu11 -I$(WORKDIR)
+
+AR := ar
 
 ifeq ($(OS),Windows_NT)
 else

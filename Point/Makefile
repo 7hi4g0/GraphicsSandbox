@@ -1,10 +1,17 @@
 include ../defs.mk
 
-all: main.c point.o
-	$(CC) -o points main.c point.o ../Window/window.o ../Line/line.o $(CFLAGS) $(GRAPHICS_LINKER) -lm
+APPLICATION := points
+
+all: $(APPLICATION)
+
+$(APPLICATION): main.c $(LIBRARY)
+	@echo "Building $(APPLICATION) example application"
+	@$(CC) $(CFLAGS) main.c -o $(APPLICATION) $(GRAPHICS_LINKER) -L$(LIBDIR) -lgraphics -lm
 
 point.o: point.c point.h
-	$(CC) -c -o point.o point.c $(CFLAGS)
+	@$(CC) -c -o point.o point.c $(CFLAGS)
 
 clean:
-	-rm -f points point.o
+	@-rm -f points point.o
+
+include ../library.mk

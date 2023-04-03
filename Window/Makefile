@@ -1,5 +1,7 @@
 include ../defs.mk
 
+APPLICATION := window
+
 WINDOW_SRC := window.c
 
 ifneq ($(OS),Windows_NT)
@@ -9,11 +11,18 @@ ifneq ($(OS),Windows_NT)
     endif
 endif
 
-all: main.c window.o
-	$(CC) -o window main.c window.o $(CFLAGS) $(GRAPHICS_LINKER)
+all: $(APPLICATION)
+
+$(APPLICATION): main.c $(LIBRARY)
+	@echo "Building $(APPLICATION) example application"
+	@$(CC) $(CFLAGS) main.c -o $(APPLICATION) $(GRAPHICS_LINKER) -L$(LIBDIR) -lgraphics
 
 window.o: $(WINDOW_SRC) window.h
-	$(CC) -c -o window.o $(WINDOW_SRC) $(CFLAGS)
+	@$(CC) -c -o window.o $(WINDOW_SRC) $(CFLAGS)
 
 clean:
-	-rm -f window window.o
+	@-rm -f window window.o
+
+.PHONY: clean $(LIBRARY)
+
+include ../library.mk

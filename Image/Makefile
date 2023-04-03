@@ -1,10 +1,17 @@
 include ../defs.mk
 
-all: alpha.c image.o
-	$(CC) -o alpha alpha.c image.o ../Window/window.o $(CFLAGS) $(GRAPHICS_LINKER)
+APPLICATION := alpha
+
+all: $(APPLICATION)
+
+$(APPLICATION): alpha.c $(LIBRARY)
+	@echo "Building $(APPLICATION) example application"
+	@$(CC) $(CFLAGS) alpha.c -o $(APPLICATION) $(GRAPHICS_LINKER) -L$(LIBDIR) -lgraphics
 
 image.o: image.c image.h
-	$(CC) -c -o image.o image.c $(CFLAGS)
+	@$(CC) -c -o image.o image.c $(CFLAGS)
 
 clean:
-	-rm -f alpha image.o
+	@-rm -f alpha image.o
+
+include ../library.mk

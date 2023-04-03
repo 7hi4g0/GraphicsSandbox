@@ -1,7 +1,14 @@
 include ../defs.mk
 
-all: main.c
-	$(CC) -o bezier main.c ../Window/window.o ../Line/line.o $(CFLAGS) $(GRAPHICS_LINKER) -lm
+APPLICATION := bezier
+
+all: $(APPLICATION)
+
+$(APPLICATION): main.c $(LIBRARY)
+	@echo "Building $(APPLICATION) example application"
+	@$(CC) $(CFLAGS) main.c -o $(APPLICATION) $(GRAPHICS_LINKER) -L$(LIBDIR) -lgraphics -lm
 
 clean:
-	-rm -f bezier
+	@-rm -f bezier
+
+include ../library.mk

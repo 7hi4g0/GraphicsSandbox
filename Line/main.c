@@ -6,7 +6,7 @@
 #include <Image/image.h>
 #include <Line/line.h>
 
-#define LineFnCount	4
+#define LineFnCount	5
 #define	MaxPoints	32
 
 KEY_RELEASE(keyRelease);
@@ -17,18 +17,20 @@ BUTTON_MOTION(buttonMotion);
 char windowName[] = "Lines";
 char fileName[] = "lines.ppm";
 
-DrawLineFn drawLineList[4] = {
+DrawLineFn drawLineList[LineFnCount] = {
 	drawLine,
 	drawLineThick,
 	drawLineAntialias,
-	drawLineAntialiasSlow
+	drawLineAntialiasSlow,
+	drawLineAntialiasXiaolinWu
 };
 
-char* drawLineNameList[4] = {
+char* drawLineNameList[LineFnCount] = {
 	"drawLine",
 	"drawLineThick",
 	"drawLineAntialias",
-	"drawLineAntialiasSlow"
+	"drawLineAntialiasSlow",
+	"drawLineAntialiasXiaolinWu"
 };
 
 Point points[MaxPoints];
@@ -117,6 +119,9 @@ void keyRelease(KeyboardEvent keyboardEvent) {
 			break;
 		case KEYCODE_P:
 			showPoints = !showPoints;
+			break;
+		case KEYCODE_C:
+			totalPoints = 0;
 			break;
 		default:
 			break;

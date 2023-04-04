@@ -16,5 +16,6 @@ extern void drawLine(Image image, Point p1, Point p2);
 extern void drawLineThick(Image image, Point p1, Point p2);
 extern void drawLineAntialias(Image image, Point p1, Point p2);
 extern void drawLineAntialiasSlow(Image image, Point p1, Point p2);
+extern void drawLineAntialiasXiaolinWu(Image image, Point p1, Point p2);
 
 #endif

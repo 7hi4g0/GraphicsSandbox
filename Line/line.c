@@ -268,3 +268,59 @@ void drawLineAntialiasSlow(Image image, Point p1, Point p2) {
 
 	data[p2.y * image.width + p2.x] = 0x00000000;
 }
+
+void drawLineAntialiasXiaolinWu(Image image, Point p1, Point p2) {
+	uint32_t *data;
+	uint8_t error;
+	double x, y;
+	int32_t dx, dy;
+	int32_t xStep, yStep;
+	double gradient;
+
+	data = (uint32_t *) image.data;
+
+	if (p1.x > p2.x) {
+		Point temp = p1;
+		p1 = p2;
+		p2 = temp;
+	}
+
+	dx = p2.x - p1.x; // No need for abs(). p2.x is greater or equal to p1.x.
+	dy = abs(p2.y - p1.y);
+	xStep = 1;
+	yStep = p1.y <= p2.y ? 1 : -1;
+
+	x = p1.x;
+	y = p1.y;
+
+	data[((uint32_t)y) * image.width + ((uint32_t)x)] = 0x00000000;
+
+	if (dy > dx) {
+		gradient = dx / (double) dy;
+
+		while (--dy) {
+			x += gradient;
+			y += yStep;
+
+			error = (x - ((uint32_t) x)) * 0xFF;
+
+			drawPixelAlpha(&data[((uint32_t)y) * image.width + (uint32_t)x], color(error ^ 0xFF));
+			drawPixelAlpha(&data[((uint32_t)y) * image.width + (uint32_t)x + xStep], color(error));
+		}
+	} else {
+		gradient = dy / (double) dx;
+		gradient *= yStep;
+
+		while (--dx) {
+			y += gradient;
+			x += xStep;
+
+			error = (y - ((uint32_t) y)) * 0xFF;
+
+			drawPixelAlpha(&data[((uint32_t)y) * image.width + ((uint32_t)x)], color(error ^ 0xFF));
+			drawPixelAlpha(&data[((uint32_t)y + 1) * image.width + ((uint32_t)x)], color(error));
+		}
+	}
+
+	data[p2.y * image.width + p2.x] = 0x00000000;
+}

@@ -1,4 +1,5 @@
 #include <Line/line.h>
+#include <Image/image.h>
 
 static uint32_t sLineThickness = 1;
 
@@ -139,8 +140,14 @@ void drawLineThick(Image image, Point p1, Point p2) {
 	}
 }
 
-uint32_t color(uint8_t intensity) {
-	return (intensity << 16) + (intensity << 8) + intensity;
+Pixel color(uint8_t intensity) {
+	Pixel color = {0x00000000};
+	color.A = intensity;
+	return color;
+}
+
+void drawPixelAlpha(uint32_t *pixel, Pixel pixelData) {
+	*pixel = alphaBlend(pixelData, (Pixel) *pixel).value;
 }
 
 void drawLineAntialias(Image image, Point p1, Point p2) {
@@ -180,8 +187,8 @@ void drawLineAntialias(Image image, Point p1, Point p2) {
 
 			weight = error >> 8;
 
-			data[y * image.width + x] = color(weight);
-			data[y * image.width + x + sx] = color(weight ^ 0xFF);
+			drawPixelAlpha(&data[y * image.width + x], color(weight ^ 0xFF));
+			drawPixelAlpha(&data[y * image.width + x + sx], color(weight));
 		}
 	} else {
 		errorAdj = ((uint32_t) dy << 16) / (uint32_t) dx;
@@ -197,8 +204,8 @@ void drawLineAntialias(Image image, Point p1, Point p2) {
 
 			weight = error >> 8;
 
-			data[y * image.width + x] = color(weight);
-			data[(y + sy) * image.width + x] = color(weight ^ 0xFF);
+			drawPixelAlpha(&data[y * image.width + x], color(weight ^ 0xFF));
+			drawPixelAlpha(&data[(y + sy) * image.width + x], color(weight));
 		}
 	}
 
@@ -239,8 +246,8 @@ void drawLineAntialiasSlow(Image image, Point p1, Point p2) {
 			}
 			y += sy;
 
-			data[y * image.width + x] = color((uint8_t) sqrtf(error));
-			data[y * image.width + x + sx] = color((uint8_t) sqrtf(error ^ 0xFFFF));
+			drawPixelAlpha(&data[y * image.width + x], color((uint8_t) sqrtf(error ^ 0xFFFF)));
+			drawPixelAlpha(&data[y * image.width + x + sx], color((uint8_t) sqrtf(error)));
 		}
 	} else {
 		errorAdj = ((uint32_t) dy << 16) / (uint32_t) dx;
@@ -254,8 +261,8 @@ void drawLineAntialiasSlow(Image image, Point p1, Point p2) {
 			}
 			x += sx;
 
-			data[y * image.width + x] = color((uint8_t) sqrtf(error));
-			data[(y + sy) * image.width + x] = color((uint8_t) sqrtf(error ^ 0xFFFF));
+			drawPixelAlpha(&data[y * image.width + x], color((uint8_t) sqrtf(error ^ 0xFFFF)));
+			drawPixelAlpha(&data[(y + sy) * image.width + x], color((uint8_t) sqrtf(error)));
 		}
 	}
 

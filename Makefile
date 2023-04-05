@@ -25,4 +25,4 @@ clean:
 		$(MAKE) -C $$dir clean;\
 	done
 
-.PHONY: clean $(SUBPROJECTS)
+.PHONY: clean $(OBJECTS) $(SUBPROJECTS)

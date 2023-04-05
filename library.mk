@@ -2,3 +2,5 @@
 
 $(LIBRARY):
 	@$(MAKE) -C ../ $(LIBRARY)
+
+.PHONY: $(LIBRARY)

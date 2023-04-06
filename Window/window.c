@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	prepare();
-	
+
 	dpy = XOpenDisplay(NULL);
 
 	root = DefaultRootWindow(dpy);
@@ -87,7 +87,7 @@ int main(int argc, char *argv[]) {
 
 	win = XCreateWindow(dpy, root, 0, 0, width, height, 0, CopyFromParent, InputOutput, CopyFromParent, CWBackPixel | CWColormap | CWEventMask, &swa);
 	//win = XCreateSimpleWindow(dpy, root, 0, 0, 600, 600, 0, 0xBCBCBC);
-	
+
 	delete_event = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
 	XSetWMProtocols(dpy, win, &delete_event, 1);
 
@@ -125,8 +125,6 @@ int main(int argc, char *argv[]) {
 	img.width = width;
 	img.height = height;
 
-	FILE *imageFile;
-	Pixel *pixel;
 	XEvent xev;
 	KeySym keysym;
 	char loop = 1;
@@ -145,24 +143,7 @@ int main(int argc, char *argv[]) {
 					keysym = XLookupKeysym(&xev.xkey, 0);
 					switch (keysym) {
 						case XK_s:
-							imageFile = fopen(fileName, "w");
-
-							if (imageFile != NULL) {
-								fprintf(imageFile, "P3\n%d %d\n255\n", width, height);
-
-								pixel = (Pixel *) image.data;
-
-								for (int y = 0; y < height; y++) {
-									for (int x = 0; x < width; x++) {
-										fprintf(imageFile, "%d %d %d ", pixel->R, pixel->G, pixel->B);
-										pixel++;
-									}
-									fprintf(imageFile, "\n");
-								}
-
-								fclose(imageFile);
-								imageFile = NULL;
-
+							if (saveImage(img, fileName) == 0) {
 								fprintf(stderr, "File saved!\n");
 							}
 							break;
@@ -192,7 +173,7 @@ int main(int argc, char *argv[]) {
 					MouseEvent mouseEvent = {
 						{xev.xbutton.x, xev.xbutton.y}
 					};
-					
+
 					buttonReleaseFn(mouseEvent);
 				}
 					break;
@@ -200,7 +181,7 @@ int main(int argc, char *argv[]) {
 					MouseEvent mouseEvent = {
 						{xev.xmotion.x, xev.xmotion.y}
 					};
-					
+
 					buttonMotionFn(mouseEvent);
 				}
 					break;

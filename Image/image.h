@@ -20,5 +20,6 @@ typedef struct {
 } Image;
 
 extern Pixel alphaBlend(Pixel src, Pixel dst);
+extern int saveImage(Image image, char fileName[]);
 
 #endif

@@ -115,7 +115,7 @@ main(int argc, char *argv[])
 	size_t bitsPerPixel = bitsPerComponent * 4;
 	size_t bytesPerRow = width * 4;
 	size_t BitmapMemorySize = (width * height * 4);
-	
+
 	CGColorSpaceRef space = CGColorSpaceCreateDeviceRGB();
 
 	Image img;
@@ -128,8 +128,6 @@ main(int argc, char *argv[])
 		fprintf(stderr, "Unable to allocate memory\n");
 	}
 
-	FILE *imageFile;
-	Pixel *pixel;
 	NSEvent *event = nil;
 
 	char __block loop = 1;
@@ -151,24 +149,7 @@ main(int argc, char *argv[])
 					unsigned short keyCode = [event keyCode];
 					switch (keyCode) {
 						case KEYCODE_S:
-							imageFile = fopen(fileName, "w");
-
-							if (imageFile != NULL) {
-								fprintf(imageFile, "P3\n%d %d\n255\n", width, height);
-
-								pixel = (Pixel *) img.data;
-
-								for (int y = 0; y < height; y++) {
-									for (int x = 0; x < width; x++) {
-										fprintf(imageFile, "%d %d %d ", pixel->R, pixel->G, pixel->B);
-										pixel++;
-									}
-									fprintf(imageFile, "\n");
-								}
-
-								fclose(imageFile);
-								imageFile = NULL;
-
+							if (saveImage(img, fileName) == 0) {
 								fprintf(stderr, "File saved!\n");
 							}
 							break;

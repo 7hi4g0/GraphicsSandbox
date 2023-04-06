@@ -1,11 +1,13 @@
 include defs.mk
 
-all: $(LIBRARY) $(SUBPROJECTS)
+all: library $(SUBPROJECTS)
 	@echo "All targets successfully built"
 
 $(SUBPROJECTS):
 	@echo "Building $(patsubst %/,%,$(dir $@))"
 	@$(MAKE) -C $@
+
+library: $(LIBRARY)
 
 $(LIBRARY): $(OBJECTS) | $(LIBDIR)
 	@$(AR) rcs $@ $(OBJECTS)

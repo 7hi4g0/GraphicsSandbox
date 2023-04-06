@@ -40,7 +40,7 @@ void drawLine(Image image, Point p1, Point p2) {
 	int32_t x, y;
 	int32_t error, e2;
 	int32_t dx, dy;
-	int32_t sx, sy;
+	int32_t xStep, yStep;
 	int32_t addrx, addry;
 
 	data = (uint32_t *) image.data;
@@ -50,8 +50,8 @@ void drawLine(Image image, Point p1, Point p2) {
 
 	dx = abs(p2.x - p1.x);
 	dy = abs(p2.y - p1.y);
-	sx = p1.x < p2.x ? 1 : -1;
-	sy = p1.y < p2.y ? 1 : -1;
+	xStep = p1.x < p2.x ? 1 : -1;
+	yStep = p1.y < p2.y ? 1 : -1;
 	addrx = p1.x < p2.x ? 1 : -1;
 	addry = p1.y < p2.y ? image.width : -image.width;
 
@@ -70,12 +70,12 @@ void drawLine(Image image, Point p1, Point p2) {
 
 		if (e2 < dx) {
 			error += dy;
-			x += sx;
+			x += xStep;
 			addr += addrx;
 		}
 		if (e2 > -dy) {
 			error -= dx;
-			y += sy;
+			y += yStep;
 			addr += addry;
 		}
 	}
@@ -96,7 +96,7 @@ void drawLineThick(Image image, Point p1, Point p2) {
 	uint32_t x, y;
 	int32_t error, e2;
 	int32_t dx, dy;
-	int32_t sx, sy;
+	int32_t xStep, yStep;
 	int32_t addrx, addry;
 	int32_t startThick, thickAdd;
 
@@ -107,8 +107,8 @@ void drawLineThick(Image image, Point p1, Point p2) {
 
 	dx = abs(p2.x - p1.x);
 	dy = abs(p2.y - p1.y);
-	sx = p1.x < p2.x ? 1 : -1;
-	sy = p1.y < p2.y ? 1 : -1;
+	xStep = p1.x < p2.x ? 1 : -1;
+	yStep = p1.y < p2.y ? 1 : -1;
 	addrx = p1.x < p2.x ? 1 : -1;
 	addry = p1.y < p2.y ? image.width : -image.width;
 	thickAdd = dx > dy ? addry : addrx;
@@ -129,12 +129,12 @@ void drawLineThick(Image image, Point p1, Point p2) {
 
 		if (e2 < dx) {
 			error += dy;
-			x += sx;
+			x += xStep;
 			data += addrx;
 		}
 		if (e2 > -dy) {
 			error -= dx;
-			y += sy;
+			y += yStep;
 			data += addry;
 		}
 	}
@@ -157,14 +157,20 @@ void drawLineAntialias(Image image, Point p1, Point p2) {
 	uint8_t weight;
 	int32_t x, y;
 	int32_t dx, dy;
-	int32_t sx, sy;
+	int32_t xStep, yStep;
 
 	data = (uint32_t *) image.data;
 
-	dx = abs(p2.x - p1.x);
+	if (p1.x > p2.x) {
+		Point temp = p1;
+		p1 = p2;
+		p2 = temp;
+	}
+
+	dx = p2.x - p1.x; // No need for abs(). p2.x is greater or equal to p1.x.
 	dy = abs(p2.y - p1.y);
-	sx = p1.x < p2.x ? 1 : -1;
-	sy = p1.y < p2.y ? 1 : -1;
+	xStep = 1;
+	yStep = p1.y <= p2.y ? 1 : -1;
 
 	x = p1.x;
 	y = p1.y;
@@ -180,15 +186,15 @@ void drawLineAntialias(Image image, Point p1, Point p2) {
 			errorLast = error;
 			error += errorAdj;
 
-			if (error < errorLast) {
-				x += sx;
+			if (error <= errorLast) {
+				x += xStep;
 			}
-			y += sy;
+			y += yStep;
 
 			weight = error >> 8;
 
 			drawPixelAlpha(&data[y * image.width + x], color(weight ^ 0xFF));
-			drawPixelAlpha(&data[y * image.width + x + sx], color(weight));
+			drawPixelAlpha(&data[y * image.width + x + xStep], color(weight));
 		}
 	} else {
 		errorAdj = ((uint32_t) dy << 16) / (uint32_t) dx;
@@ -197,15 +203,15 @@ void drawLineAntialias(Image image, Point p1, Point p2) {
 			errorLast = error;
 			error += errorAdj;
 
-			if (error < errorLast) {
-				y += sy;
+			if (error <= errorLast) {
+				y += yStep;
 			}
-			x += sx;
+			x += xStep;
 
 			weight = error >> 8;
 
 			drawPixelAlpha(&data[y * image.width + x], color(weight ^ 0xFF));
-			drawPixelAlpha(&data[(y + sy) * image.width + x], color(weight));
+			drawPixelAlpha(&data[(y + yStep) * image.width + x], color(weight));
 		}
 	}
 
@@ -218,14 +224,14 @@ void drawLineAntialiasSlow(Image image, Point p1, Point p2) {
 	uint16_t errorAdj;
 	int32_t x, y;
 	int32_t dx, dy;
-	int32_t sx, sy;
+	int32_t xStep, yStep;
 
 	data = (uint32_t *) image.data;
 
 	dx = abs(p2.x - p1.x);
 	dy = abs(p2.y - p1.y);
-	sx = p1.x < p2.x ? 1 : -1;
-	sy = p1.y < p2.y ? 1 : -1;
+	xStep = p1.x < p2.x ? 1 : -1;
+	yStep = p1.y < p2.y ? 1 : -1;
 
 	x = p1.x;
 	y = p1.y;
@@ -241,13 +247,13 @@ void drawLineAntialiasSlow(Image image, Point p1, Point p2) {
 			errorLast = error;
 			error += errorAdj;
 
-			if (error < errorLast) {
-				x += sx;
+			if (error <= errorLast) {
+				x += xStep;
 			}
-			y += sy;
+			y += yStep;
 
 			drawPixelAlpha(&data[y * image.width + x], color((uint8_t) sqrtf(error ^ 0xFFFF)));
-			drawPixelAlpha(&data[y * image.width + x + sx], color((uint8_t) sqrtf(error)));
+			drawPixelAlpha(&data[y * image.width + x + xStep], color((uint8_t) sqrtf(error)));
 		}
 	} else {
 		errorAdj = ((uint32_t) dy << 16) / (uint32_t) dx;
@@ -256,13 +262,70 @@ void drawLineAntialiasSlow(Image image, Point p1, Point p2) {
 			errorLast = error;
 			error += errorAdj;
 
-			if (error < errorLast) {
-				y += sy;
+			if (error <= errorLast) {
+				y += yStep;
 			}
-			x += sx;
+			x += xStep;
 
 			drawPixelAlpha(&data[y * image.width + x], color((uint8_t) sqrtf(error ^ 0xFFFF)));
-			drawPixelAlpha(&data[(y + sy) * image.width + x], color((uint8_t) sqrtf(error)));
+			drawPixelAlpha(&data[(y + yStep) * image.width + x], color((uint8_t) sqrtf(error)));
+		}
+	}
+
+	data[p2.y * image.width + p2.x] = 0x00000000;
+}
+
+void drawLineAntialiasSlow2(Image image, Point p1, Point p2) {
+	uint32_t *data;
+	uint16_t error, errorLast;
+	uint16_t errorAdj;
+	int32_t x, y;
+	int32_t dx, dy;
+	int32_t xStep, yStep;
+
+	data = (uint32_t *) image.data;
+
+	dx = abs(p2.x - p1.x);
+	dy = abs(p2.y - p1.y);
+	xStep = p1.x < p2.x ? 1 : -1;
+	yStep = p1.y < p2.y ? 1 : -1;
+
+	x = p1.x;
+	y = p1.y;
+
+	error = 0;
+
+	data[y * image.width + x] = 0x00000000;
+
+	if (dy > dx) {
+		errorAdj = ((uint32_t) dx << 16) / (uint32_t) dy;
+
+		while (--dy) {
+			errorLast = error;
+			error += errorAdj;
+
+			if (error <= errorLast) {
+				x += xStep;
+			}
+			y += yStep;
+
+			drawPixelAlpha(&data[y * image.width + x], color(((uint8_t) sqrtf(error)) ^ 0xFF));
+			drawPixelAlpha(&data[y * image.width + x + xStep], color((uint8_t) sqrtf(error)));
+		}
+	} else {
+		errorAdj = ((uint32_t) dy << 16) / (uint32_t) dx;
+
+		while (--dx) {
+			errorLast = error;
+			error += errorAdj;
+
+			if (error <= errorLast) {
+				y += yStep;
+			}
+			x += xStep;
+
+			drawPixelAlpha(&data[y * image.width + x], color(((uint8_t) sqrtf(error)) ^ 0xFF));
+			drawPixelAlpha(&data[(y + yStep) * image.width + x], color((uint8_t) sqrtf(error)));
 		}
 	}
 

@@ -1,7 +1,7 @@
 include ../defs.mk
 
 EXAMPLE_APPLICATION := line
-APPLICATIONS += slope antialias
+APPLICATIONS += slope antialias compare
 
 ALL_APPLICATIONS := $(EXAMPLE_APPLICATION) $(APPLICATIONS)
 

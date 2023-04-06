@@ -15,6 +15,7 @@ void drawPoint(Image image, Point point, uint8_t size) {
 	}
 }
 
+// Works only for square points
 int inPoint(Point point, Point pos, uint8_t tolerance) {
 	return abs(point.x - pos.x) <= tolerance && abs(point.y - pos.y) <= tolerance;
 }
